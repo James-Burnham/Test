@@ -96,7 +96,7 @@ function get-subscriptions{
     $subscriptionIds | fl
     [int]$ans = Read-Host 'Select Subscription Number(s), enter 0 when ready to proceed with current selections.'
     if($ans -eq '0'){
-        return
+        break
     }
     $selection = $menu.Item($ans)
     $subscriptionIds += $selection
