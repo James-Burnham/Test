@@ -1,3 +1,4 @@
+#to use: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/James-Burnham/Test/master/subscription-setup.ps1'))
 $spDisplayName = "cloud-slice-test"
 $cancel = $false
 
