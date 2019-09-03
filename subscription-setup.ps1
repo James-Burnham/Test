@@ -1,6 +1,17 @@
-$spDisplayName = "00TestPrincipal"
-$subscriptionIds = @("5a2628d8-83e6-4e03-a21e-81ec51fb14cf")
-$tenantId = "05b5620f-3842-4876-bc0d-e29c07d272cc"
+param(
+    [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
+    [ValidateNotNullOrEmpty()]
+    [System.Array]
+    $SubscriptionIds = $null,
+
+    [Parameter(Mandatory=$false,HelpMessage="Display name for your service principal, if left blank (recommended) it will default to 'cloud-slice-app'")]
+    [ValidateNotNullOrEmpty()]
+    [System.String]
+    $spDisplayName = $null
+)
+if($spDisplayName -eq $null){
+    $spDisplayName = "cloud-slice-test"
+}
 $cancel = $false
 
 function aad-auth{
@@ -57,6 +68,7 @@ function create-sp($spDisplayName){
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
 
     $script:AppInfo = [pscustomobject]@{
+        'Application Name' = $app.DisplayName
         'Application Id' = $app.AppId
         'Application Secret' =  $secret.Value
     }
