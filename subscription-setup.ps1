@@ -56,7 +56,7 @@ function create-sp($spDisplayName){
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
 
-    $AppInfo = [pscustomobject]@{
+    $script:AppInfo = [pscustomobject]@{
         'Application Id' = $app.AppId
         'Application Secret' =  $secret.Value
     }
@@ -130,7 +130,7 @@ if($sp -eq $null){
     Write-Host "Service Principal Created, use the below items for authentication info."
     Write-Warning "Be sure to record your secret somewhere secure! This cannot be retrieved in the future."
     $AppInfo | fl
-    Read-Host 'After you have put your authentication information in a secure location, press any key when ready to continue.'
+    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue.'
 
 }else{
     "`n"
