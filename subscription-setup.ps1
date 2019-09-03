@@ -69,12 +69,13 @@ function create-sp($spDisplayName){
     }
 }
 
-function create-role-assignment($spDisplayName,$subscriptionId){
+function create-role-assignment($spDisplayName,$subscriptionId,$sp){
     $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner"
     if($roleAssignment -eq $null){
+        $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
         while ($addRole.DisplayName -ne $sp.DisplayName ) {
-        Start-Sleep -Seconds 30
         Write-Host "Waiting for Initial Service Principal Role Assignment (this may take a couple minutes)."
+        Start-Sleep -Seconds 30
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
         }
         "Service Principal assigned as Owner to subscription $subscriptionId."
@@ -181,5 +182,5 @@ foreach($subscriptionId in $script:subscriptionIds){
     "`nConfiguring $subscriptionName"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
-    create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId
+    create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
 }
