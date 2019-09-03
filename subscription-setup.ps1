@@ -2,16 +2,10 @@ param(
     [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
     [ValidateNotNullOrEmpty()]
     [System.Array]
-    $SubscriptionIds = $null,
-
-    [Parameter(Mandatory=$false,HelpMessage="Display name for your service principal, if left blank (recommended) it will default to 'cloud-slice-app'")]
-    [ValidateNotNullOrEmpty()]
-    [System.String]
-    $spDisplayName = $null
+    $SubscriptionIds = @(),
 )
-if($spDisplayName -eq $null){
-    $spDisplayName = "cloud-slice-test"
-}
+
+$spDisplayName = "cloud-slice-test"
 $cancel = $false
 
 function aad-auth{
