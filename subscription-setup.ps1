@@ -1,11 +1,3 @@
-<#
-param(
-    [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
-    [ValidateNotNullOrEmpty()]
-    [System.Array]
-    $script:subscriptionIds = @()
-)
-#>
 $spDisplayName = "cloud-slice-test"
 $cancel = $false
 
@@ -31,8 +23,7 @@ function create-sp($spDisplayName){
     "`n"
     "Creating new Service Principal"
     $signInURL = "https://labondemand.com/User/SignIn"
-    #New-AzureADServicePrincipal -DisplayName 00TestPrincipal
-
+    
     $msGraphPrincipal = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Microsoft Graph"}
     $msGraphAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
     $msGraphAccess.ResourceAppId = $msGraphPrincipal.AppId
@@ -58,7 +49,6 @@ function create-sp($spDisplayName){
     }
 
     $app = New-AzureADApplication -DisplayName $spDisplayName -HomePage $signInURL -ReplyUrl $signInURL -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
-    #Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $aadGraphAccess
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
 
@@ -96,6 +86,7 @@ function get-subscriptions{
         }
     "Currently Selected:"
     $script:subscriptionIds | fl
+    "`n"
     [int]$ans = Read-Host 'Select Subscription Number(s), enter 0 when ready to proceed with current selections.'
     if($ans -eq '0'){
         break
@@ -104,33 +95,14 @@ function get-subscriptions{
     $script:subscriptionIds += $selection
     } While ($True)
     $script:subscriptionIds = $script:subscriptionIds | Select-Object -Unique
-    "Selected Subscriptions:"
+    "`n"
+    "Selected Subscriptions for Configuration:"
     $script:subscriptionIds | fl
     if($script:subscriptionIds -eq $null){
         "return"
     }
 }
 
-function arm-auth($subscriptionId){
-    $subscription = ''
-    try{$subscription = Get-AzSubscription -SubscriptionId $subscriptionid}catch{}
-    $script:subscriptionName = $subscription.Name
-    if($subscription -eq $null){
-        $confirmation = Read-Host "`nSubscription ID $subscriptionId not detected in current context. Would you like to login to a different account?(Y/Cancel)"
-        if($confirmation -eq "Y"){
-            Logout-AzAccount > $null
-            $subscription = Login-AzAccount -SubscriptionId $subscriptionId > $null
-            $script:subscriptionName = $subscription.Context.Subscription.Name
-        }elseif($confirmation -eq "Cancel"){
-            $script:cancel = $true
-            return
-        }
-    }elseif($subscription.Id -ne $subscriptionId){
-        
-
-
-    }
-}
 function configure-resource-providers($subscriptionId,$subscriptionName){
     "Registering Resource Providers for subscription ${subscriptionId}:"
     # Register most providers
@@ -157,7 +129,6 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
     "All resource providers registered for $subscriptionName."
 }
 
-#validate-module
 aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
 get-sp -spDisplayName $spDisplayName
@@ -176,10 +147,9 @@ if($sp -eq $null){
 "Continuing to Subscription Configuration"
 get-subscriptions
 foreach($subscriptionId in $script:subscriptionIds){
-    #arm-auth -subscriptionId $subscriptionId
     $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
-    "`nConfiguring $subscriptionName"
+    "`nConfiguring $subscriptionName - $subscriptionId"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
