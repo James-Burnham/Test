@@ -86,6 +86,7 @@ function create-role-assignment($spDisplayName,$subscriptionId){
 function get-subscriptions{
     $script:subscriptionIds = @()
     Do {
+    "`n"
     $subscriptions = Get-AzSubscription | Sort-Object -Property Name
     $menu = @{}
     for ($i=1;$i -le $subscriptions.count; $i++) {
