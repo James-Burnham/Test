@@ -11,13 +11,9 @@ function aad-auth{
     "ID: $($currentTenant.ObjectId)"
     "`n"
     $confirmation = Read-Host 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter.'
-        if($confirmation -eq "Y"){
-            Disconnect-AzureAD > $null
-            Connect-AzureAD -TenantId $tenantId > $null
-        }elseif($confirmation -eq "Cancel"){
-            $script:cancel = $true
-            return
-        }
+    if($confirmation -eq "Cancel"){
+        $script:cancel = $true
+        return
     }
 }
 
