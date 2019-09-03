@@ -54,7 +54,7 @@ function create-sp($spDisplayName){
     $app = New-AzureADApplication -DisplayName $spDisplayName -HomePage $signInURL -ReplyUrl $signInURL -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     #Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $aadGraphAccess
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
-    $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (date).AddYears(50)
+    $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
 
     $AppInfo = [pscustomobject]@{
         'Application Id' = $app.AppId
