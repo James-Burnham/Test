@@ -3,26 +3,14 @@ $subscriptionIds = @("5a2628d8-83e6-4e03-a21e-81ec51fb14cf")
 $tenantId = "05b5620f-3842-4876-bc0d-e29c07d272cc"
 $cancel = $false
 
-function validate-module{
-    $error.Clear()
-    $AzureAD = Get-InstalledModule AzureAd -ErrorAction Ignore
-    $Az = Get-InstalledModule Az -ErrorAction Ignore
-    if($AzureAD -eq $null){
-        Write-Error 'AzureAD Module not found. Please run "Install-Module AzureAD" as an administrator, then try again.'
-    }
-    if($Az -eq $null){
-        Write-Error 'Az Module not found. Please run "Install-Module Az" as an administrator, then try again.'
-    }
-    if($error -ne $null){
-        throw "Required Modules missing. See previous error(s) for details."
-    }
-}
-
 function aad-auth{
-    try{$currentTenant = Get-AzureADTenantDetail}catch{}
-    $currentTenantId = $currentTenant.ObjectId
-    if($currentTenantId -ne $tenantId){
-        $confirmation = Read-Host "`nTenant ID $tenantId not detected in current context. Would you like to login to a different account?(Y/Cancel)"
+    $currentTenant = Get-AzureADTenantDetail
+    "`n"
+    "Current Tenant Information Below:"
+    "Name: $($currentTenant.DisplayName)"
+    "ID: $($currentTenant.ObjectId)"
+    "`n"
+    $confirmation = Read-Host 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter.'
         if($confirmation -eq "Y"){
             Disconnect-AzureAD > $null
             Connect-AzureAD -TenantId $tenantId > $null
@@ -70,8 +58,7 @@ function create-sp($spDisplayName){
     $app = New-AzureADApplication -DisplayName $spDisplayName -HomePage $signInURL -ReplyUrl $signInURL -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     #Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $aadGraphAccess
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
-    $endDate = (date).AddYears(50)
-    $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate $endDate
+    $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (date).AddYears(50)
 
     $AppInfo = [pscustomobject]@{
         'Application Id' = $app.AppId
@@ -139,8 +126,8 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
 }
 
 #validate-module
-#aad-auth
-#if($cancel -eq $true){return "Cancelling Subscription Setup."}
+aad-auth
+if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
 get-sp -spDisplayName $spDisplayName
 if($sp -eq $null){
     create-sp -spDisplayName $spDisplayName
