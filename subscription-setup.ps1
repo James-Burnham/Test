@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
     [ValidateNotNullOrEmpty()]
     [System.Array]
-    $SubscriptionIds = @()
+    $script:subscriptionIds = @()
 )
 #>
 $spDisplayName = "cloud-slice-test"
@@ -93,18 +93,18 @@ function get-subscriptions{
         $menu.Add($i,($subscriptions[$i-1].Id))
         }
     "Currently Selected:"
-    $subscriptionIds | fl
+    $script:subscriptionIds | fl
     [int]$ans = Read-Host 'Select Subscription Number(s), enter 0 when ready to proceed with current selections.'
     if($ans -eq '0'){
         break
     }
     $selection = $menu.Item($ans)
-    $subscriptionIds += $selection
+    $script:subscriptionIds += $selection
     } While ($True)
-    $subscriptionIds = $subscriptionIds | Select-Object -Unique
+    $script:subscriptionIds = $script:subscriptionIds | Select-Object -Unique
     "Selected Subscriptions:"
-    $subscriptionIds | fl
-    if($subscriptionIds -eq $null){
+    $script:subscriptionIds | fl
+    if($script:subscriptionIds -eq $null){
         "return"
     }
 }
@@ -173,7 +173,7 @@ if($sp -eq $null){
 
 "Continuing to Subscription Configuration"
 get-subscriptions
-foreach($subscriptionId in $subscriptionIds){
+foreach($subscriptionId in $script:subscriptionIds){
     #arm-auth -subscriptionId $subscriptionId
     Select-AzSubscription -Subscription $subscriptionId > $null
     "`nConfiguring $subscriptionName"
