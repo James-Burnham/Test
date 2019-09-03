@@ -1,10 +1,11 @@
+<#
 param(
     [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
     [ValidateNotNullOrEmpty()]
     [System.Array]
     $SubscriptionIds = @()
 )
-
+#>
 $spDisplayName = "cloud-slice-test"
 $cancel = $false
 
@@ -82,6 +83,32 @@ function create-role-assignment($spDisplayName,$subscriptionId){
     }
 }
 
+function get-subscriptions{
+    $script:subscriptionIds = @()
+    Do {
+    $subscriptions = Get-AzSubscription | Sort-Object -Property Name
+    $menu = @{}
+    for ($i=1;$i -le $subscriptions.count; $i++) {
+        Write-Host "$i. $($subscriptions[$i-1].Name) - $($subscriptions[$i-1].Id)"
+        $menu.Add($i,($subscriptions[$i-1].Id))
+        }
+    "Currently Selected:"
+    $subscriptionIds | fl
+    [int]$ans = Read-Host 'Select Subscription Number(s), enter 0 when ready to proceed with current selections.'
+    if($ans -eq '0'){
+        return
+    }
+    $selection = $menu.Item($ans)
+    $subscriptionIds += $selection
+    } While ($True)
+    $subscriptionIds = $subscriptionIds | Select-Object -Unique
+    "Selected Subscriptions:"
+    $subscriptionIds | fl
+    if($subscriptionIds -eq $null){
+        "return"
+    }
+}
+
 function arm-auth($subscriptionId){
     $subscription = ''
     try{$subscription = Get-AzSubscription -SubscriptionId $subscriptionid}catch{}
@@ -97,9 +124,10 @@ function arm-auth($subscriptionId){
             return
         }
     }elseif($subscription.Id -ne $subscriptionId){
-        Select-AzSubscription -Subscription $subscriptionId > $null
+        
+
+
     }
-    "`nConfiguring $subscriptionName"
 }
 function configure-resource-providers($subscriptionId,$subscriptionName){
     "Registering Resource Providers for subscription ${subscriptionId}:"
@@ -144,8 +172,11 @@ if($sp -eq $null){
 }
 
 "Continuing to Subscription Configuration"
+get-subscriptions
 foreach($subscriptionId in $subscriptionIds){
-    arm-auth -subscriptionId $subscriptionId
+    #arm-auth -subscriptionId $subscriptionId
+    Select-AzSubscription -Subscription $subscriptionId > $null
+    "`nConfiguring $subscriptionName"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId
