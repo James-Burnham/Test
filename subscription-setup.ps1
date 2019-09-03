@@ -175,7 +175,8 @@ if($sp -eq $null){
 get-subscriptions
 foreach($subscriptionId in $script:subscriptionIds){
     #arm-auth -subscriptionId $subscriptionId
-    Select-AzSubscription -Subscription $subscriptionId > $null
+    $subscription = Select-AzSubscription -Subscription $subscriptionId
+    $subscriptionName = $subscription.Subscription.Name
     "`nConfiguring $subscriptionName"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
