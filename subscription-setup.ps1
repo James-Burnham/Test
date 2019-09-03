@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory=$true,HelpMessage="Include any subscription IDs within this tenant you'd like to have setup for LOD access.")]
     [ValidateNotNullOrEmpty()]
     [System.Array]
-    $SubscriptionIds = @(),
+    $SubscriptionIds = @()
 )
 
 $spDisplayName = "cloud-slice-test"
