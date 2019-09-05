@@ -53,7 +53,7 @@ function create-sp($spDisplayName){
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
     $companyAdminRole = Get-AzureADDirectoryRole | Where-Object DisplayName -eq 'Company Administrator'
-    Add-AzureADDirectoryRoleMember -ObjectId $companyAdminRole.ObjectId -RefObjectId $sp.ObjectId
+    Add-AzureADDirectoryRoleMember -ObjectId $companyAdminRole.ObjectId -RefObjectId $sp.ObjectId > $null
     
     $script:AppInfo = [pscustomobject]@{
         'Application Name' = $app.DisplayName
