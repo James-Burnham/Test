@@ -43,13 +43,13 @@ function get-spperms{
 }
 
 function get-sp($spDisplayName){
-    $script:spDisplayName = ''
-    $script:spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
-    Start-Sleep -Seconds 5
-    if($spDisplayName -eq '' -or $spDisplayName -eq $null){
-        $script:spDisplayName = "cloud-slice-app"
-    }
-    $spDisplayName
+    $script:spDisplayName = 'cloud-slice-app'
+    #$script:spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+    #Start-Sleep -Seconds 5
+    #if($spDisplayName -eq '' -or $spDisplayName -eq $null){
+    #    $script:spDisplayName = "cloud-slice-app"
+    #}
+    #$spDisplayName
     $script:sp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
     if($sp -ne $null){
         $app = Get-AzureADApplication -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
