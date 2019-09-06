@@ -46,12 +46,12 @@ function get-sp($spDisplayName){
     $script:spDisplayName = ''
     $script:spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
     sleep -Seconds 1
-    if($script:spDisplayName -eq ""){
+    if($spDisplayName -eq ""){
         $script:spDisplayName = "cloud-slice-app"
     }
     $spDisplayName
     $script:sp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
-    if($script:sp -ne $null){
+    if($sp -ne $null){
         $app = Get-AzureADApplication -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
         Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     }
