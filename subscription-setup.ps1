@@ -9,7 +9,7 @@ function aad-auth{
     "Name: $($currentTenant.DisplayName)"
     "ID: $($currentTenant.ObjectId)"
     "`n"
-    $confirmation = Read-Host 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter.'
+    $confirmation = Read-Host 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
     if($confirmation -eq "Cancel"){
         $script:cancel = $true
         return
@@ -45,12 +45,12 @@ function get-spperms{
 function get-sp($spDisplayName){
     $script:spDisplayName = ''
     $script:spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
-    if($spDisplayName -eq ""){
+    if($script:spDisplayName -eq ""){
         $script:spDisplayName = "cloud-slice-app"
     }
     $spDisplayName
     $script:sp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
-    if($sp -ne $null){
+    if($script:sp -ne $null){
         $app = Get-AzureADApplication -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
         Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     }
