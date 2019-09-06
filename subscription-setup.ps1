@@ -1,5 +1,5 @@
 #to use: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/James-Burnham/Test/master/subscription-setup.ps1'))
-$spDisplayName = "cloud-slice-app"
+
 $cancel = $false
 
 function aad-auth{
@@ -16,8 +16,44 @@ function aad-auth{
     }
 }
 
+function get-spperms{
+    $msGraphPrincipal = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Microsoft Graph"}
+    $script:msGraphAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
+    $script:msGraphAccess.ResourceAppId = $msGraphPrincipal.AppId
+    foreach($guid in $($msGraphPrincipal.Oauth2Permissions.Id)){
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $script:msGraphAccess.ResourceAccess += $resourceAccess
+    }
+    foreach($guid in $($msGraphPrincipal.AppRoles.Id)){
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $script:msGraphAccess.ResourceAccess += $resourceAccess
+    }
+
+    $aadGraphPrincipal = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Windows Azure Active Directory"}
+    $script:aadGraphAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
+    $script:aadGraphAccess.ResourceAppId = $aadGraphPrincipal.AppId
+    foreach($guid in $($aadGraphPrincipal.Oauth2Permissions.Id)){
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $script:aadGraphAccess.ResourceAccess += $resourceAccess
+    }
+    foreach($guid in $($aadGraphPrincipal.AppRoles.Id)){
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $script:aadGraphAccess.ResourceAccess += $resourceAccess
+    }
+}
+
 function get-sp($spDisplayName){
+    $script:spDisplayName = ''
+    $script:spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+    if($spDisplayName -eq ""){
+        $script:spDisplayName = "cloud-slice-app"
+    }
+    $spDisplayName
     $script:sp = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
+    if($sp -ne $null){
+        $app = Get-AzureADApplication -All $true | Where-Object {$_.DisplayName -eq $spDisplayName}
+        Set-AzureADApplication -ObjectId $app.ObjectId -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
+    }
 }
 
 function create-sp($spDisplayName){
@@ -25,35 +61,11 @@ function create-sp($spDisplayName){
     "Creating new Service Principal"
     $signInURL = "https://labondemand.com/User/SignIn"
     
-    $msGraphPrincipal = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Microsoft Graph"}
-    $msGraphAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
-    $msGraphAccess.ResourceAppId = $msGraphPrincipal.AppId
-    foreach($guid in $($msGraphPrincipal.Oauth2Permissions.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
-        $msGraphAccess.ResourceAccess += $resourceAccess
-    }
-    foreach($guid in $($msGraphPrincipal.AppRoles.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
-        $msGraphAccess.ResourceAccess += $resourceAccess
-    }
-
-    $aadGraphPrincipal = Get-AzureADServicePrincipal -All $true | Where-Object {$_.DisplayName -eq "Windows Azure Active Directory"}
-    $aadGraphAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
-    $aadGraphAccess.ResourceAppId = $aadGraphPrincipal.AppId
-    foreach($guid in $($aadGraphPrincipal.Oauth2Permissions.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
-        $aadGraphAccess.ResourceAccess += $resourceAccess
-    }
-    foreach($guid in $($aadGraphPrincipal.AppRoles.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
-        $aadGraphAccess.ResourceAccess += $resourceAccess
-    }
-
     $app = New-AzureADApplication -DisplayName $spDisplayName -HomePage $signInURL -ReplyUrl $signInURL -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
     $companyAdminRole = Get-AzureADDirectoryRole | Where-Object DisplayName -eq 'Company Administrator'
-    Add-AzureADDirectoryRoleMember -ObjectId $companyAdminRole.ObjectId -RefObjectId $sp.ObjectId > $null
+    Add-AzureADDirectoryRoleMember -ObjectId $companyAdminRole.ObjectId -RefObjectId $sp.ObjectId
     
     $script:AppInfo = [pscustomobject]@{
         'Application Name' = $app.DisplayName
@@ -90,7 +102,7 @@ function get-subscriptions{
     "Currently Selected:"
     $script:subscriptionIds | fl
     "`n"
-    [int]$ans = Read-Host 'Select Subscription Number(s), enter 0 when ready to proceed with current selections.'
+    [int]$ans = Read-Host 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections'
     if($ans -eq '0'){
         break
     }
@@ -134,17 +146,17 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
 
 aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
+get-spperms
 get-sp -spDisplayName $spDisplayName
 if($sp -eq $null){
     create-sp -spDisplayName $spDisplayName
     Write-Host "Service Principal Created, use the below items for authentication info."
     Write-Warning "Be sure to record your secret somewhere secure! This cannot be retrieved in the future."
     $AppInfo | fl
-    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue.'
-
+    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue'
 }else{
     "`n"
-    "Service Principal Found. Continuing..."
+    "Service Principal found, validating permissions."
 }
 
 "Continuing to Subscription Configuration"
