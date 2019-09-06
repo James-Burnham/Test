@@ -25,7 +25,7 @@ function get-spperms{
         $script:msGraphAccess.ResourceAccess += $resourceAccess
     }
     foreach($guid in $($msGraphPrincipal.AppRoles.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Role"
         $script:msGraphAccess.ResourceAccess += $resourceAccess
     }
 
@@ -37,7 +37,7 @@ function get-spperms{
         $script:aadGraphAccess.ResourceAccess += $resourceAccess
     }
     foreach($guid in $($aadGraphPrincipal.AppRoles.Id)){
-        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Scope"
+        $resourceAccess = New-Object -TypeName "microsoft.open.azuread.model.resourceAccess" -ArgumentList $guid, "Role"
         $script:aadGraphAccess.ResourceAccess += $resourceAccess
     }
 }
@@ -60,7 +60,7 @@ function create-sp($spDisplayName){
     "`n"
     "Creating new Service Principal"
     $signInURL = "https://labondemand.com/User/SignIn"
-    
+
     $app = New-AzureADApplication -DisplayName $spDisplayName -HomePage $signInURL -ReplyUrl $signInURL -RequiredResourceAccess $msGraphAccess,$aadGraphAccess
     $script:sp = New-AzureADServicePrincipal -AppId $app.AppId 
     $secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier "LOD Initial Setup" -EndDate (get-date).AddYears(50)
