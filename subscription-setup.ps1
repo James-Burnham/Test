@@ -150,7 +150,7 @@ $spDisplayName = Read-Host
 if($spDisplayName -eq '' -or $spDisplayName -eq $null){
     $spDisplayName = "cloud-slice-app"
 }
-$spDisplayName
+"Service Principal Name: $spDisplayName"
 get-spperms
 get-sp -spDisplayName $spDisplayName
 if($sp -eq $null){
@@ -158,7 +158,8 @@ if($sp -eq $null){
     Write-Host "Service Principal Created, use the below items for authentication info."
     Write-Warning "Be sure to record your secret somewhere secure! This cannot be retrieved in the future."
     $AppInfo | fl
-    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue:'
+    Write-Host -ForegroundColor Cyan -NoNewline 'After you have put your authentication information in a secure location, press the Enter key when ready to continue:'
+    Read-Host
 }else{
     "`n"
     "Service Principal found, validating permissions."
