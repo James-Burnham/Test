@@ -73,7 +73,7 @@ function create-sp($spDisplayName){
 }
 
 function create-role-assignment($spDisplayName,$subscriptionId,$sp){
-    "Validating Service Principal Role Assignment"    
+    "Validating Service Principal Role Assignment..."    
     $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     if($roleAssignment -eq $null){
         #while ($roleAssignment -eq $null) {
