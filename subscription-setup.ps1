@@ -74,17 +74,17 @@ function create-sp($spDisplayName){
 
 function create-role-assignment($spDisplayName,$subscriptionId,$sp){
     try{
-    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner"
-    if($roleAssignment -eq $null){
-        #while ($roleAssignment -eq $null) {
-        #Write-Host "Waiting for Initial Service Principal Role Assignment (this may take a couple minutes)."
-        Start-Sleep -Seconds 30
-        $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
-        #}
-        "Service Principal assigned as Owner to subscription $subscriptionId."
-    }else{
-        "Service Principal already assigned as Owner to subscription $subscriptionId."
-    }
+        $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
+        if($roleAssignment -eq $null){
+            #while ($roleAssignment -eq $null) {
+            #Write-Host "Waiting for Initial Service Principal Role Assignment (this may take a couple minutes)."
+            Start-Sleep -Seconds 30
+            $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
+            #}
+            "Service Principal assigned as Owner to subscription $subscriptionId."
+        }else{
+            "Service Principal already assigned as Owner to subscription $subscriptionId."
+        }
     }catch{}
 }
 
