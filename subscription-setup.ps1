@@ -11,7 +11,7 @@ function aad-auth{
     "ID: $($currentTenant.ObjectId)"
     "`n"
     Write-Host -ForegroundColor Yellow 'Validate you are in the correct tenant according to the above information.'
-    Write-Host -ForegroundColor Green -NoNewline 'If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
+    Write-Host -ForegroundColor Cyan -NoNewline 'If this is the correct tenant, press Enter. If it is the incorrect tenant, type "Cancel":'
     $confirmation = Read-Host 
     "`n"
     if($confirmation -eq "Cancel"){
@@ -100,7 +100,7 @@ function get-subscriptions{
     Write-Host -ForegroundColor Yellow "Currently Selected:"
     $script:subscriptionIds | fl
     "`n"
-    Write-Host -ForegroundColor Green -NoNewline 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections'
+    Write-Host -ForegroundColor Cyan -NoNewline 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections:'
     [int]$ans = Read-Host
     if($ans -eq '0'){
         break
@@ -145,7 +145,7 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
 
 aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
-Write-Host -ForegroundColor Gray -NoNewline 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+Write-Host -ForegroundColor Cyan -NoNewline 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app":'
 $spDisplayName = Read-Host
 #Start-Sleep -Seconds 5
 if($spDisplayName -eq '' -or $spDisplayName -eq $null){
@@ -159,7 +159,7 @@ if($sp -eq $null){
     Write-Host "Service Principal Created, use the below items for authentication info."
     Write-Warning "Be sure to record your secret somewhere secure! This cannot be retrieved in the future."
     $AppInfo | fl
-    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue'
+    Read-Host 'After you have put your authentication information in a secure location, press the Enter key when ready to continue:'
 }else{
     "`n"
     "Service Principal found, validating permissions."
