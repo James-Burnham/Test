@@ -73,7 +73,7 @@ function create-sp($spDisplayName){
 }
 
 function create-role-assignment($spDisplayName,$subscriptionId,$sp){
-    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -
+    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner"
     if($roleAssignment -eq $null){
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
         while ($roleAssignment -eq $null) {
@@ -91,14 +91,18 @@ function get-subscriptions{
     $script:subscriptionIds = @()
     Do {
     "`n"
-    $subscriptions = Get-AzSubscription | Sort-Object -Property Name
+    $subscriptions = Get-AzSubscription | Sort-Object -Property Name | select -First 10
     $menu = @{}
     for ($i=1;$i -le $subscriptions.count; $i++) {
         Write-Host "$i. $($subscriptions[$i-1].Name) - $($subscriptions[$i-1].Id)"
         $menu.Add($i,($subscriptions[$i-1].Id))
         }
     Write-Host -ForegroundColor Yellow "Currently Selected:"
-    $script:subscriptionIds | fl
+    if($subscriptionIds -eq $null){
+        "None"
+    }else{
+        $subscriptionIds | fl
+    }
     "`n"
     Write-Host -ForegroundColor Cyan -NoNewline 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections:'
     [int]$ans = Read-Host
@@ -112,9 +116,6 @@ function get-subscriptions{
     "`n"
     "Selected Subscriptions for Configuration:"
     $script:subscriptionIds | fl
-    if($script:subscriptionIds -eq $null){
-        "return"
-    }
 }
 
 function configure-resource-providers($subscriptionId,$subscriptionName){
@@ -167,6 +168,9 @@ if($sp -eq $null){
 
 "Continuing to Subscription Configuration"
 get-subscriptions
+if($script:subscriptionIds -eq $null){
+    return "No Subscriptions Selected. Cancelling Setup."
+}
 foreach($subscriptionId in $script:subscriptionIds){
     $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
