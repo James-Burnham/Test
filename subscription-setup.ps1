@@ -10,11 +10,12 @@ function aad-auth{
     "Name: $($currentTenant.DisplayName)"
     "ID: $($currentTenant.ObjectId)"
     "`n"
-    Write-Host -ForegroundColor Green -NoNewline 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
+    Write-Host -ForegroundColor Yellow 'Validate you are in the correct tenant according to the above information.'
+    Write-Host -ForegroundColor Green -NoNewline 'If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
     $confirmation = Read-Host 
-
     if($confirmation -eq "Cancel"){
         $script:cancel = $true
+        "`n"
         return
     }
 }
@@ -96,10 +97,11 @@ function get-subscriptions{
         Write-Host "$i. $($subscriptions[$i-1].Name) - $($subscriptions[$i-1].Id)"
         $menu.Add($i,($subscriptions[$i-1].Id))
         }
-    "Currently Selected:"
+    Write-Host -ForegroundColor Yellow "Currently Selected:"
     $script:subscriptionIds | fl
     "`n"
-    [int]$ans = Read-Host 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections'
+    Write-Host -ForegroundColor Green -NoNewline 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections'
+    [int]$ans = Read-Host
     if($ans -eq '0'){
         break
     }
@@ -143,7 +145,8 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
 
 aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
-$spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+Write-Host -ForegroundColor Gray -NoNewline 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+$spDisplayName = Read-Host
 #Start-Sleep -Seconds 5
 if($spDisplayName -eq '' -or $spDisplayName -eq $null){
     $spDisplayName = "cloud-slice-app"
