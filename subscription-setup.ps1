@@ -13,9 +13,9 @@ function aad-auth{
     Write-Host -ForegroundColor Yellow 'Validate you are in the correct tenant according to the above information.'
     Write-Host -ForegroundColor Green -NoNewline 'If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
     $confirmation = Read-Host 
+    "`n"
     if($confirmation -eq "Cancel"){
         $script:cancel = $true
-        "`n"
         return
     }
 }
