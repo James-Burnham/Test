@@ -1,12 +1,6 @@
 #to use: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/James-Burnham/Test/master/subscription-setup.ps1'))
 
 $spDisplayName = ''
-$spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
-#Start-Sleep -Seconds 5
-if($spDisplayName -eq '' -or $spDisplayName -eq $null){
-    $spDisplayName = "cloud-slice-app"
-}
-$spDisplayName
 $cancel = $false
 
 function aad-auth{
@@ -76,7 +70,7 @@ function create-sp($spDisplayName){
 }
 
 function create-role-assignment($spDisplayName,$subscriptionId,$sp){
-    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner"
+    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -
     if($roleAssignment -eq $null){
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
         while ($roleAssignment -eq $null) {
@@ -147,6 +141,12 @@ function configure-resource-providers($subscriptionId,$subscriptionName){
 
 aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
+$spDisplayName = Read-Host 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app"'
+#Start-Sleep -Seconds 5
+if($spDisplayName -eq '' -or $spDisplayName -eq $null){
+    $spDisplayName = "cloud-slice-app"
+}
+$spDisplayName
 get-spperms
 get-sp -spDisplayName $spDisplayName
 if($sp -eq $null){
@@ -165,7 +165,7 @@ get-subscriptions
 foreach($subscriptionId in $script:subscriptionIds){
     $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
-    "`nConfiguring $subscriptionName - $subscriptionId"
+    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
