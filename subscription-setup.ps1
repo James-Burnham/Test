@@ -10,7 +10,8 @@ function aad-auth{
     "Name: $($currentTenant.DisplayName)"
     "ID: $($currentTenant.ObjectId)"
     "`n"
-    $confirmation = Read-Host 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
+    Write-Host -ForegroundColor Green -NoNewline 'Validate you are in the correct tenant according to the above information. If this is the incorrect tenant, type "Cancel". If it is the correct tenant, press Enter'
+    $confirmation = Read-Host 
     if($confirmation -eq "Cancel"){
         $script:cancel = $true
         return
