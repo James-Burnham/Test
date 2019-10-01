@@ -89,7 +89,7 @@ function get-subscriptions{
     $script:subscriptionIds = @()
     Do {
     "`n"
-    $subscriptions = Get-AzSubscription | Sort-Object -Property Name | select -First 10
+    $subscriptions = Get-AzSubscription | Sort-Object -Property Name
     $menu = @{}
     for ($i=1;$i -le $subscriptions.count; $i++) {
         Write-Host "$i. $($subscriptions[$i-1].Name) - $($subscriptions[$i-1].Id)"
