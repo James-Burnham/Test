@@ -139,7 +139,7 @@ function select-subscriptions{
 }
 
 function configure-resource-providers($subscriptionId,$subscriptionName){
-    "Registering Resource Providers for subscription ${subscriptionId}:"
+    "Registering Resource Providers for subscription $($subscriptionId.Name) - $($subscriptionId.Id):"
     # Register most providers
     Get-AzResourceProvider -ListAvailable | Where-Object {$_.RegistrationState -ne "Registered"} | foreach-object{
         $registering = Register-AzResourceProvider -ProviderNamespace $_.ProviderNamespace -ErrorAction Ignore
@@ -195,9 +195,9 @@ Do{
     }
 }while($true)
 foreach($subscriptionId in $script:subscriptionIds){
-    $subscription = Select-AzSubscription -Subscription $subscriptionId
+    $subscription = Select-AzSubscription -Subscription $subscriptionId.Id
     $subscriptionName = $subscription.Subscription.Name
-    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId"
+    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId.Id"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
