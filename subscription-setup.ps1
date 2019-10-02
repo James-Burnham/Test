@@ -79,7 +79,7 @@ function create-role-assignment($spDisplayName,$subscriptionId,$sp){
         Start-Sleep -Seconds 30
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     }
-    "Service Principal assigned as Owner to subscription $subscriptionId."    
+    "Service Principal assigned as Owner to subscription $($subscriptionId.Id)."    
 }
 
 function get-subscriptions{
