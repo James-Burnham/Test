@@ -196,7 +196,7 @@ Do{
 }while($true)
 foreach($subscriptionId in $script:subscriptionIds){
     $subId = $subscriptionId.Id
-    $subscription = Select-AzSubscription -Subscription $subscriptionId
+    $subscription = Select-AzSubscription -Subscription $subId
     $subscriptionName = $subscription.Subscription.Name
     Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subId"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
