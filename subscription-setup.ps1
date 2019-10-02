@@ -72,14 +72,14 @@ function create-sp($spDisplayName){
     }
 }
 
-function create-role-assignment($spDisplayName,$subscriptionId,$sp){
+function create-role-assignment($spDisplayName,$subId,$sp){
     "Validating Service Principal Role Assignment..."    
-    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
+    $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     if($roleAssignment -eq $null){
         Start-Sleep -Seconds 30
-        $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
+        $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     }
-    "Service Principal assigned as Owner to subscription $subscriptionId."    
+    "Service Principal assigned as Owner to subscription $subId."    
 }
 
 function get-subscriptions{
@@ -138,8 +138,8 @@ function select-subscriptions{
     } While ($True)
 }
 
-function configure-resource-providers($subscriptionId,$subscriptionName){
-    "Registering Resource Providers for subscription $subscriptionName - ${subscriptionId}:"
+function configure-resource-providers($subId,$subscriptionName){
+    "Registering Resource Providers for subscription $subscriptionName - ${subId}:"
     # Register most providers
     Get-AzResourceProvider -ListAvailable | Where-Object {$_.RegistrationState -ne "Registered"} | foreach-object{
         $registering = Register-AzResourceProvider -ProviderNamespace $_.ProviderNamespace -ErrorAction Ignore
@@ -195,11 +195,11 @@ Do{
     }
 }while($true)
 foreach($subscriptionId in $script:subscriptionIds){
-    $subscriptonId = $subscriptionId.Id
+    $subId = $subscriptionId.Id
     $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
-    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId"
+    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subId"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
-    configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
-    create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
+    configure-resource-providers -subId $subId -subscriptionName $subscriptionName
+    create-role-assignment -spDisplayName $spDisplayName -subId $subId -sp $sp
 }
