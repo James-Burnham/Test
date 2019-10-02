@@ -197,7 +197,7 @@ Do{
 foreach($subscriptionId in $script:subscriptionIds){
     $subscription = Select-AzSubscription -Subscription $subscriptionId.Id
     $subscriptionName = $subscription.Subscription.Name
-    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId.Id"
+    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $($subscriptionId.Id)"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
