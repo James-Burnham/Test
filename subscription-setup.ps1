@@ -79,7 +79,7 @@ function create-role-assignment($spDisplayName,$subscriptionId,$sp){
         Start-Sleep -Seconds 30
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     }
-    "Service Principal assigned as Owner to subscription $($subscriptionId.Id)."    
+    "Service Principal assigned as Owner to subscription $subscriptionId."    
 }
 
 function get-subscriptions{
@@ -139,7 +139,7 @@ function select-subscriptions{
 }
 
 function configure-resource-providers($subscriptionId,$subscriptionName){
-    "Registering Resource Providers for subscription $($subscriptionId.Name) - $($subscriptionId.Id):"
+    "Registering Resource Providers for subscription $subscriptionName - ${subscriptionId}:"
     # Register most providers
     Get-AzResourceProvider -ListAvailable | Where-Object {$_.RegistrationState -ne "Registered"} | foreach-object{
         $registering = Register-AzResourceProvider -ProviderNamespace $_.ProviderNamespace -ErrorAction Ignore
@@ -195,9 +195,10 @@ Do{
     }
 }while($true)
 foreach($subscriptionId in $script:subscriptionIds){
-    $subscription = Select-AzSubscription -Subscription $subscriptionId.Id
+    $subscriptonId = $subscriptionId.Id
+    $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
-    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $($subscriptionId.Id)"
+    Write-Host -ForegroundColor Yellow "`nConfiguring $subscriptionName - $subscriptionId"
     if($cancel -eq $true){return "Cancelling Subscription Setup."}    
     configure-resource-providers -subscriptionId $subscriptionId -subscriptionName $subscriptionName
     create-role-assignment -spDisplayName $spDisplayName -subscriptionId $subscriptionId -sp $sp
