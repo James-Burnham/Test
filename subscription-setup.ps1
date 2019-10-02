@@ -76,44 +76,66 @@ function create-role-assignment($spDisplayName,$subscriptionId,$sp){
     "Validating Service Principal Role Assignment..."    
     $roleAssignment = Get-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
     if($roleAssignment -eq $null){
-        #while ($roleAssignment -eq $null) {
-        #Write-Host "Waiting for Initial Service Principal Role Assignment (this may take a couple minutes)."
         Start-Sleep -Seconds 30
         $addRole = New-AzRoleAssignment -ObjectId $sp.ObjectId -Scope "/subscriptions/$subscriptionId/" -RoleDefinitionName "Owner" -ErrorAction Ignore
-        #}
     }
     "Service Principal assigned as Owner to subscription $subscriptionId."    
 }
 
 function get-subscriptions{
     $script:subscriptionIds = @()
-    Do {
     "`n"
-    $subscriptions = Get-AzSubscription | Sort-Object -Property Name
+    $subscriptions = Get-AzureRMSubscription | Sort-Object -Property Name | select -first 10 
     $menu = @{}
+    $script:subObjects = @()
     for ($i=1;$i -le $subscriptions.count; $i++) {
-        Write-Host "$i. $($subscriptions[$i-1].Name) - $($subscriptions[$i-1].Id)"
-        $menu.Add($i,($subscriptions[$i-1].Id))
+        $script:subObjects += [pscustomobject]@{
+            'Number' = $i
+            'Name' = $subscriptions[$i-1].Name
+            'Id' = $subscriptions[$i-1].Id
         }
-    Write-Host -ForegroundColor Yellow "Currently Selected:"
-    if($subscriptionIds -eq $null){
-        "None"
-    }else{
-        $subscriptionIds | fl
     }
-    "`n"
-    Write-Host -ForegroundColor Cyan -NoNewline 'Select Subscription Number(s), input 0 or leave blank when ready to proceed with current selections:'
-    [int]$ans = Read-Host
-    if($ans -eq '0'){
-        break
-    }
-    $selection = $menu.Item($ans)
-    $script:subscriptionIds += $selection
+}
+
+function select-subscriptions{
+    Do {
+        $script:subObjects | ft
+        Write-Host -ForegroundColor Yellow "Currently Selected:"
+        if($subscriptionIds -eq $null){
+            "None"
+        }else{
+            $subscriptionIds | ft
+        }
+        "`n"
+        Write-Host -ForegroundColor Cyan -NoNewline 'From the table above select Subscription Number(s), input 0 leave blank when ready to proceed with current selection, or for exit/reset options:'
+        [int]$ans = Read-Host
+        if($ans -eq '0'){
+            Do{
+            "`n"
+            "Selected Subscriptions for Configuration:"
+            $script:subscriptionIds | ft
+            Write-Host -ForegroundColor Cyan -NoNewline 'Would you like to reset your selections, exit setup, add more subscriptions to the list, or continue with current selections? (Reset/Cancel/Add/Proceed):'
+            $continue = Read-Host
+            if($continue -eq "Reset"){
+                $script:subscriptionIds = @()
+                return
+            }elseif($continue -eq "Exit"){
+                Exit "Setup Cancelled."
+            }elseif($continue -eq "Proceed"){
+                $script:proceed = $true
+                return
+            }elseif($continue -eq "Add"){
+                break
+            }else{
+                "Invalid Option"
+            }
+            }while($true)
+        }else{
+            $selection = $subObjects | ? number -eq $ans
+            $script:subscriptionIds += $selection
+            $script:subObjects = $subObjects | ? id -NotIn $subscriptionIds.Id
+        }
     } While ($True)
-    $script:subscriptionIds = $script:subscriptionIds | Select-Object -Unique
-    "`n"
-    "Selected Subscriptions for Configuration:"
-    $script:subscriptionIds | fl
 }
 
 function configure-resource-providers($subscriptionId,$subscriptionName){
@@ -146,7 +168,6 @@ aad-auth
 if($cancel -eq $true){return "You have identified this as the incorrect tenant. Please login to the correct tenant and try again."}
 Write-Host -ForegroundColor Cyan -NoNewline 'Enter the name of your service principal here. If left blank, it will default to "cloud-slice-app":'
 $spDisplayName = Read-Host
-#Start-Sleep -Seconds 5
 if($spDisplayName -eq '' -or $spDisplayName -eq $null){
     $spDisplayName = "cloud-slice-app"
 }
@@ -166,10 +187,13 @@ if($sp -eq $null){
 }
 
 "Continuing to Subscription Configuration"
-get-subscriptions
-if($script:subscriptionIds -eq $null){
-    return "No Subscriptions Selected. Cancelling Setup."
-}
+Do{
+    get-subscriptions
+    select-subscriptions
+    if($script:proceed -eq $true){
+        break
+    }
+}while($true)
 foreach($subscriptionId in $script:subscriptionIds){
     $subscription = Select-AzSubscription -Subscription $subscriptionId
     $subscriptionName = $subscription.Subscription.Name
