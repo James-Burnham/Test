@@ -85,7 +85,7 @@ function create-role-assignment($spDisplayName,$subId,$sp){
 function get-subscriptions{
     $script:subscriptionIds = @()
     "`n"
-    $subscriptions = Get-AzureRMSubscription | Sort-Object -Property Name | select -first 10 
+    $subscriptions = Get-AzureRMSubscription | Sort-Object -Property Name
     $menu = @{}
     $script:subObjects = @()
     for ($i=1;$i -le $subscriptions.count; $i++) {
