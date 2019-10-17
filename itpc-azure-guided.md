@@ -1,4 +1,4 @@
-:::!INSTRUCTIONS[][logo-format]
+:::itpclogo-guided
 
 :::
 
