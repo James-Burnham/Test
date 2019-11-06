@@ -7,7 +7,7 @@
 
 <details>
 <summary class=button>Challenge Overview</summary>
-^KNOWLEDGE[][overview]
+!INSTRUCTIONS[][overview]
 </details>
 
 ## Azure Credentials
