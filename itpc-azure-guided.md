@@ -4,7 +4,11 @@
 
 # !INSTRUCTIONS[][challenge-name]
 <br>
-^KNOWLEDGE[**Challenge Overview**][overview]
+
+<details>
+<summary class=button>Challenge Overview</summary>
+^KNOWLEDGE[][overview]
+</details>
 
 ## Azure Credentials
 |||
