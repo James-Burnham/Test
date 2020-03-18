@@ -1,1 +1,1 @@
-Usé el traductor de Google para hacer esto en chino. ¡Esperemos que realmente se haya traducido bien!
+Utilicé Google Translate para hacer esto en español. ¡Ojalá se haya traducido bien!
