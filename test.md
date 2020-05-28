@@ -6,4 +6,4 @@ Then create a VM named ++MyFunPlace++
 
 Type **This Too**
 
-Type **<random number>.onmicrosoft.com**
+Type **admin@<random number>.onmicrosoft.com**
