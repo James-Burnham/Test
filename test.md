@@ -5,3 +5,5 @@ Then create a VM named ++MyFunPlace++
 <strong>Type This Crazy Text</strong>
 
 Type **This Too**
+
+Type **<random number>.onmicrosoft.com**
